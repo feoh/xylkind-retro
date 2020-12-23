@@ -3,13 +3,13 @@
 -- desc:   Protect the eggs!
 -- script: lua
 
-t=0
-c=0
+sprite_counter=0
+tick=0
 eggs_laid = false
-NUM_EGGS = 8
+INITIAL_EGGS = 8
 
 
-keeper_player = {
+keeper = {
   position = {
     x=0,
     y=0
@@ -21,10 +21,26 @@ eggs = {
     x=0,
     y=0
   },
+  laid_at_tick = 0,
+  hatched_at_tick = 0,
   hatched = false,
 }
 
 
+function move_keeper()
+  if btn(0) then keeper.position.y=keeper.position.y-1 end
+  if btn(1) then keeper.position.y=keeper.position.y+1 end
+  if btn(2) then keeper.position.x=keeper.position.x-1 end
+  if btn(3) then keeper.position.x=keeper.position.x+1 end
+  spr(sprite_counter % 4,keeper.position.x,keeper.position.y)
+  spr((sprite_counter % 4) + 16,keeper.position.x + 8,keeper.position.y)
+  spr((sprite_counter % 4) + 32,keeper.position.x + 16,keeper.position.y)
+  tick=tick+1
+
+  if tick % 30 == 0 then
+    sprite_counter=sprite_counter+1
+  end
+end
 
 
 function lay_eggs()
@@ -34,6 +50,7 @@ function lay_eggs()
         x=math.random(233),
         y=math.random(134)
       },
+      laid_at_tick = tick
     }
   end
   eggs_laid = true
@@ -41,34 +58,29 @@ end
 
 
 function draw_eggs()
-  if not eggs_laid then
+  if not eggs_laid then:
     lay_eggs()
   end
 
-  for egg_count = 1, NUM_EGGS do  
+  for egg_count = 1, INITIAL_EGGS do
     spr(64+egg_count % 4,
       eggs[egg_count].position.x,
       eggs[egg_count].position.y)
   end
 end
 
+
+function hatch_eggs()
+
+end
+
+
 function TIC()
 
   cls()
   
   draw_eggs()
-  if btn(0) then keeper_player.position.y=keeper_player.position.y-1 end
-  if btn(1) then keeper_player.position.y=keeper_player.position.y+1 end
-  if btn(2) then keeper_player.position.x=keeper_player.position.x-1 end
-  if btn(3) then keeper_player.position.x=keeper_player.position.x+1 end
-  spr(t % 4,keeper_player.position.x,keeper_player.position.y)
-  spr((t % 4) + 16,keeper_player.position.x + 8,keeper_player.position.y)
-  spr((t % 4) + 32,keeper_player.position.x + 16,keeper_player.position.y)
-  c=c+1
-  
-  if c % 30 == 0 then
-    t=t+1
-  end
+  move_keeper()
 end
 
 -- <TILES>
