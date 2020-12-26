@@ -27,6 +27,18 @@ eggs = {
   visible=true
 }
 
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
 
 function move_keeper()
   if btn(0) then keeper.position.y=keeper.position.y-1 end
@@ -78,19 +90,15 @@ end
 function hatch_eggs()
   for current_egg =1,#eggs do
     hatched_at_tick = eggs[current_egg].hatched_at_tick
-    trace(hatched_at_tick)
+    trace("Tick: " .. tick)
+    trace(dump(eggs[current_egg]))
     if hatched_at_tick and (tick > (hatched_at_tick + 50)) then
       spr(80, eggs[current_egg].position.x, eggs[current_egg].position.y)
-    end
-    if hatched_at_tick and (tick > (hatched_at_tick + 100)) then
+    elseif hatched_at_tick and (tick > (hatched_at_tick + 150)) then
       spr(81, eggs[current_egg].position.x, eggs[current_egg].position.y)
-    end
-    if hatched_at_tick and (tick > (hatched_at_tick + 150)) then
-      trace(tick)
-      trace(hatched_at_tick)
+    elseif hatched_at_tick and (tick > (hatched_at_tick + 250)) then
       eggs[current_egg].visible = false
-    end
-    if tick >= eggs[current_egg].mature_by_tick then
+    elseif tick >= eggs[current_egg].mature_by_tick then
       eggs[current_egg].hatched_at_tick = tick
       spr(80, eggs[current_egg].position.x, eggs[current_egg].position.y)
     end
