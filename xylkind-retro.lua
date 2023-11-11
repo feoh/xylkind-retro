@@ -3,111 +3,114 @@
 -- desc:   Protect the eggs!
 -- script: lua
 
-sprite_counter=0
-tick=0
-eggs_laid = false
+
+SPRITE_COUNTER=0
+TICK = 0
+EGGS_LAID = false
 INITIAL_EGGS = 8
 
 
 keeper = {
   position = {
-    x=0,
-    y=0
+    x = 0,
+    y = 0
   },
 }
 
-eggs = {  
+eggs = {
   position = {
-    x=0,
-    y=0
+    x = 0,
+    y = 0
   },
-  laid_at_tick = 0,
-  mature_by_tick = 0,
-  hatched_at_tick = 0,
-  visible=true
+  laid_at_time = 0,
+  mature_by_time = 0,
+  hatched_at_time = 0,
+  visible = true
 }
 
 function dump(o)
-   if type(o) == 'table' then
-      local s = '{ '
-      for k,v in pairs(o) do
-         if type(k) ~= 'number' then k = '"'..k..'"' end
-         s = s .. '['..k..'] = ' .. dump(v) .. ','
-      end
-      return s .. '} '
-   else
-      return tostring(o)
-   end
+  if type(o) == 'table' then
+    local s = '{ '
+    for k, v in pairs(o) do
+      if type(k) ~= 'number' then k = '"' .. k .. '"' end
+      s = s .. '[' .. k .. '] = ' .. dump(v) .. ','
+    end
+    return s .. '} '
+  else
+    return tostring(o)
+  end
 end
 
 function move_keeper()
-  if btn(0) then keeper.position.y=keeper.position.y-1 end
-  if btn(1) then keeper.position.y=keeper.position.y+1 end
-  if btn(2) then keeper.position.x=keeper.position.x-1 end
-  if btn(3) then keeper.position.x=keeper.position.x+1 end
-  spr(sprite_counter % 4,keeper.position.x,keeper.position.y)
-  spr((sprite_counter % 4) + 16,keeper.position.x + 8,keeper.position.y)
-  spr((sprite_counter % 4) + 32,keeper.position.x + 16,keeper.position.y)
-  tick=tick+1
+  if btn(0) then keeper.position.y = keeper.position.y - 1 end
+  if btn(1) then keeper.position.y = keeper.position.y + 1 end
+  if btn(2) then keeper.position.x = keeper.position.x - 1 end
+  if btn(3) then keeper.position.x = keeper.position.x + 1 end
+  spr(SPRITE_COUNTER % 4, keeper.position.x, keeper.position.y)
+  spr((SPRITE_COUNTER % 4) + 16, keeper.position.x + 8, keeper.position.y)
+  spr((SPRITE_COUNTER % 4) + 32, keeper.position.x + 16, keeper.position.y)
+  TICK = TICK + 1
 
-  if tick % 30 == 0 then
-    sprite_counter=sprite_counter+1
+  if TICK % 30 == 0 then
+    SPRITE_COUNTER = SPRITE_COUNTER + 1
   end
 end
-
 
 function lay_eggs()
-  for egg_count = 1,8 do
+  for egg_count = 1, INITIAL_EGGS do
+ 			trace("function lay_eggs: egg_count: " .. egg_count)
     eggs[egg_count] = {
       position = {
-        x=math.random(233),
-        y=math.random(134)
+        x = math.random(233),
+        y = math.random(134)
       },
-      laid_at_tick = tick,
-      mature_by_tick = math.random(200) + 300 + tick,
-      visible = true
+      laid_at_time = time(),
+      -- Not sure how to get lua to see that laid_at_time is another
+      -- element of this table.
+      -- mature_by_time = laid_at_time + math.random(300000000),
+      mature_by_time = time() + math.random(10000),
+      visible = true,
     }
+				trace("after hatch. egg:" .. dump(eggs[egg_count]))
   end
-  eggs_laid = true
+  EGGS_LAID = true
 end
 
-
 function draw_eggs()
-  if not eggs_laid then
+  if not EGGS_LAID then
     lay_eggs()
   end
 
   for egg_count = 1, #eggs do
     if eggs[egg_count].visible then
-      spr(64+egg_count % 4,
+      spr(64 + egg_count % 4,
         eggs[egg_count].position.x,
         eggs[egg_count].position.y)
     end
   end
 end
 
-
 function hatch_eggs()
-  for current_egg =1,#eggs do
-    laid_at_tick = eggs[current_egg].laid_at_tick
-    trace("Laid at ick: " .. laid_at_tick)
-    trace(dump(eggs[current_egg]))
-    if tick >= eggs[current_egg].mature_by_tick - 150 then
+  for current_egg = 1, #eggs do
+    laid_at_time = eggs[current_egg].laid_at_time
+    if time() >= eggs[current_egg].mature_by_time then
       spr(81, eggs[current_egg].position.x, eggs[current_egg].position.y)
-    elseif tick >> eggs[current_egg].mature_by_tick then
-      eggs[current_egg].hatched_at_tick = tick
-      spr(80, eggs[current_egg].position.x, eggs[current_egg].position.y)
---    elseif tick >= eggs[current_egg].mature_by_tick + 100 then
---      eggs[current_egg].visible = false
+				-- This code is meant to show the
+				-- animation for already hatched
+				-- eggs. It's not working right so
+				-- forget it for now :)
+    --elseif time() < eggs[current_egg].mature_by_time then
+      --eggs[current_egg].hatched_at_time = time()
+      --spr(80, eggs[current_egg].position.x, eggs[current_egg].position.y)
+    --elseif tick >= eggs[current_egg].mature_by_tick + 100 then
+      --eggs[current_egg].visible = false
     end
   end
 end
 
-
 function TIC()
-
   cls()
-  
+
   draw_eggs()
   move_keeper()
   hatch_eggs()
