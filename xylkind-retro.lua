@@ -4,7 +4,6 @@
 -- script: lua
 
 
-SPRITE_COUNTER=0
 TICK = 0
 EGGS_LAID = false
 INITIAL_EGGS = 8
@@ -15,7 +14,33 @@ keeper = {
     x = 0,
     y = 0
   },
+
+  -- We don't use this for the keeper
+  -- yet but we might so why not be 
+  -- consistent!
+		delta = {
+		  x = 1,
+				y = 1
+		},
+
+  sprite_count = 4,
+  anim_counter = 1,
 }
+
+
+evil_warrior = {
+  position = {
+    x = math.random(232),
+    y = math.random(128)
+  },
+		delta = {
+		  x = 1,
+				y = 1
+		},
+  sprite_count = 2,
+  anim_counter = 1,
+}
+
 
 eggs = {
   position = {
@@ -41,24 +66,59 @@ function dump(o)
   end
 end
 
+function bounds_check(obj)
+  if obj.position.x > 216 then
+  	obj.position.x = 216
+   obj.delta.x = - 1
+  end
+  
+  if obj.position.x < 0 then
+   obj.position.x = 0
+   obj.delta.x = 1
+  end
+  
+  if obj.position.y > 128 then
+   obj.position.y = 128
+   obj.delta.y = -1
+  end
+  
+  if obj.position.y < 0 then
+   obj.position.y = 0
+   obj.delta.y = 1
+  end
+end
+
 function move_keeper()
   if btn(0) then keeper.position.y = keeper.position.y - 1 end
   if btn(1) then keeper.position.y = keeper.position.y + 1 end
   if btn(2) then keeper.position.x = keeper.position.x - 1 end
   if btn(3) then keeper.position.x = keeper.position.x + 1 end
-  spr(SPRITE_COUNTER % 4, keeper.position.x, keeper.position.y)
-  spr((SPRITE_COUNTER % 4) + 16, keeper.position.x + 8, keeper.position.y)
-  spr((SPRITE_COUNTER % 4) + 32, keeper.position.x + 16, keeper.position.y)
-  TICK = TICK + 1
+  bounds_check(keeper)
+  spr(keeper.anim_counter % keeper.sprite_count, keeper.position.x, keeper.position.y)
+  spr((keeper.anim_counter % keeper.sprite_count) + 16, keeper.position.x + 8, keeper.position.y)
+  spr((keeper.anim_counter % keeper.sprite_count) + 32, keeper.position.x + 16, keeper.position.y)
 
   if TICK % 30 == 0 then
-    SPRITE_COUNTER = SPRITE_COUNTER + 1
+    keeper.anim_counter = keeper.anim_counter + 1
   end
 end
 
+function move_evil_warrior()
+  bounds_check(evil_warrior)
+  spr((evil_warrior.anim_counter % evil_warrior.sprite_count) + 96, evil_warrior.position.x, evil_warrior.position.y)
+
+  if TICK % 30 == 0 then
+    evil_warrior.anim_counter = evil_warrior.anim_counter + 1
+  end
+  
+  -- Move the evil warrior randomly for now
+  evil_warrior.position.x = evil_warrior.position.x + evil_warrior.delta.x
+  evil_warrior.position.y = evil_warrior.position.y + evil_warrior.delta.y
+end
+
+
 function lay_eggs()
   for egg_count = 1, INITIAL_EGGS do
- 			trace("function lay_eggs: egg_count: " .. egg_count)
     eggs[egg_count] = {
       position = {
         x = math.random(233),
@@ -71,7 +131,6 @@ function lay_eggs()
       mature_by_time = time() + math.random(10000),
       visible = true,
     }
-				trace("after hatch. egg:" .. dump(eggs[egg_count]))
   end
   EGGS_LAID = true
 end
@@ -113,7 +172,9 @@ function TIC()
 
   draw_eggs()
   move_keeper()
+  move_evil_warrior()
   hatch_eggs()
+  TICK = TICK + 1
 end
 
 -- <TILES>
@@ -135,6 +196,8 @@ end
 -- 067:0000000000002000002242000244442024404442244444420244422002222000
 -- 080:0240040004000040000000000055502020151042205550020200004002200000
 -- 081:0000000000000000005005000515515050055005055555505005500500000000
+-- 096:e000000f0e0000f0002dd20000d22d0000020000000020009002009009902900
+-- 097:f000000e0f0000e0002dd20000d22d0000002000000200009900209900920900
 -- </TILES>
 
 -- <WAVES>
